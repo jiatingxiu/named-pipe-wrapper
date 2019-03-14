@@ -9,3 +9,17 @@ publish
 /gh-pages
 *.backup
 /Artifacts
+*.g.i.cs
+*.cache
+*.force
+*.cur
+*.suo
+*.user
+*bin/
+*obj/
+*testmp
+/.vs
+*packages
+*.tesbak
+*.TMP
+*.cd

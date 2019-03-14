@@ -7,7 +7,7 @@ namespace ExampleCLI
 {
     class Program
     {
-        private const string DefaultPipeName = "MyServerPipe";
+        private const string DefaultPipeName = "named_pipe_test_server";
 
         static void Main(string[] args)
         {
@@ -15,13 +15,13 @@ namespace ExampleCLI
             {
                 Console.WriteLine("Running in SERVER mode");
                 Console.WriteLine("Press 'q' to exit");
-                new MyServer(DefaultPipeName);
+                new MyServer("named_pipe_test_server");
             }
             else
             {
                 Console.WriteLine("Running in CLIENT mode");
                 Console.WriteLine("Press 'q' to exit");
-                new MyClient(DefaultPipeName);
+                new MyClient("named_pipe_test_server");
             }
         }
     }
