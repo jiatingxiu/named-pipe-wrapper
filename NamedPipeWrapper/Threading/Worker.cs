@@ -7,9 +7,44 @@ using System.Threading.Tasks;
 
 namespace NamedPipeWrapper.Threading
 {
-    class Worker
+    #region Delegates
+
+    internal delegate void WorkerExceptionEventHandler(Exception exception);
+
+    internal delegate void WorkerSucceededEventHandler();
+
+    #endregion
+
+    internal class Worker
     {
+        #region Fields
+
         private readonly TaskScheduler _callbackThread;
+
+        #endregion
+
+        #region Constructors
+
+        public Worker() : this(CurrentTaskScheduler)
+        {
+        }
+
+        public Worker(TaskScheduler callbackThread)
+        {
+            _callbackThread = callbackThread;
+        }
+
+        #endregion
+
+        #region Events
+
+        public event WorkerExceptionEventHandler Error;
+
+        public event WorkerSucceededEventHandler Succeeded;
+
+        #endregion
+
+        #region Properties
 
         private static TaskScheduler CurrentTaskScheduler
         {
@@ -21,26 +56,23 @@ namespace NamedPipeWrapper.Threading
             }
         }
 
-        public event WorkerSucceededEventHandler Succeeded;
-        public event WorkerExceptionEventHandler Error;
+        #endregion
 
-        public Worker() : this(CurrentTaskScheduler)
-        {
-        }
-
-        public Worker(TaskScheduler callbackThread)
-        {
-            _callbackThread = callbackThread;
-        }
+        #region Methods
 
         public void DoWork(Action action)
         {
             new Task(DoWorkImpl, action, CancellationToken.None, TaskCreationOptions.LongRunning).Start();
         }
 
+        private void Callback(Action action)
+        {
+            Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, _callbackThread);
+        }
+
         private void DoWorkImpl(object oAction)
         {
-            var action = (Action) oAction;
+            var action = (Action)oAction;
             try
             {
                 action();
@@ -52,24 +84,18 @@ namespace NamedPipeWrapper.Threading
             }
         }
 
-        private void Succeed()
-        {
-            if (Succeeded != null)
-                Succeeded();
-        }
-
         private void Fail(Exception exception)
         {
             if (Error != null)
                 Error(exception);
         }
 
-        private void Callback(Action action)
+        private void Succeed()
         {
-            Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.None, _callbackThread);
+            if (Succeeded != null)
+                Succeeded();
         }
-    }
 
-    internal delegate void WorkerSucceededEventHandler();
-    internal delegate void WorkerExceptionEventHandler(Exception exception);
+        #endregion
+    }
 }

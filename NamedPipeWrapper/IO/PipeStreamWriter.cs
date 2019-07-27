@@ -16,12 +16,13 @@ namespace NamedPipeWrapper.IO
     /// <typeparam name="T">Reference type to serialize</typeparam>
     public class PipeStreamWriter<T> where T : class
     {
-        /// <summary>
-        /// Gets the underlying <c>PipeStream</c> object.
-        /// </summary>
-        public PipeStream BaseStream { get; private set; }
+        #region Fields
 
         private readonly BinaryFormatter _binaryFormatter = new BinaryFormatter();
+
+        #endregion
+
+        #region Constructors
 
         /// <summary>
         /// Constructs a new <c>PipeStreamWriter</c> object that writes to given <paramref name="stream"/>.
@@ -32,7 +33,47 @@ namespace NamedPipeWrapper.IO
             BaseStream = stream;
         }
 
-        #region Private stream writers
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// Gets the underlying <c>PipeStream</c> object.
+        /// </summary>
+        public PipeStream BaseStream { get; private set; }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        ///     Waits for the other end of the pipe to read all sent bytes.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">The pipe is closed.</exception>
+        /// <exception cref="NotSupportedException">The pipe does not support write operations.</exception>
+        /// <exception cref="IOException">The pipe is broken or another I/O error occurred.</exception>
+        public void WaitForPipeDrain()
+        {
+            BaseStream.WaitForPipeDrain();
+        }
+
+        /// <summary>
+        /// Writes an object to the pipe.  This method blocks until all data is sent.
+        /// </summary>
+        /// <param name="obj">Object to write to the pipe</param>
+        /// <exception cref="SerializationException">An object in the graph of type parameter <typeparamref name="T"/> is not marked as serializable.</exception>
+        public void WriteObject(T obj)
+        {
+            var data = Serialize(obj);
+            WriteLength(data.Length);
+            WriteObject(data);
+            Flush();
+        }
+
+        private void Flush()
+        {
+            BaseStream.Flush();
+        }
 
         /// <exception cref="SerializationException">An object in the graph of type parameter <typeparamref name="T"/> is not marked as serializable.</exception>
         private byte[] Serialize(T obj)
@@ -63,35 +104,6 @@ namespace NamedPipeWrapper.IO
             BaseStream.Write(data, 0, data.Length);
         }
 
-        private void Flush()
-        {
-            BaseStream.Flush();
-        }
-
         #endregion
-
-        /// <summary>
-        /// Writes an object to the pipe.  This method blocks until all data is sent.
-        /// </summary>
-        /// <param name="obj">Object to write to the pipe</param>
-        /// <exception cref="SerializationException">An object in the graph of type parameter <typeparamref name="T"/> is not marked as serializable.</exception>
-        public void WriteObject(T obj)
-        {
-            var data = Serialize(obj);
-            WriteLength(data.Length);
-            WriteObject(data);
-            Flush();
-        }
-
-        /// <summary>
-        ///     Waits for the other end of the pipe to read all sent bytes.
-        /// </summary>
-        /// <exception cref="ObjectDisposedException">The pipe is closed.</exception>
-        /// <exception cref="NotSupportedException">The pipe does not support write operations.</exception>
-        /// <exception cref="IOException">The pipe is broken or another I/O error occurred.</exception>
-        public void WaitForPipeDrain()
-        {
-            BaseStream.WaitForPipeDrain();
-        }
     }
 }
