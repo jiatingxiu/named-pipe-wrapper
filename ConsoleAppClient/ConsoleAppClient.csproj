@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NamedPipeWrapper">
+      <HintPath>..\NamedPipeWrapper\bin\Release\NamedPipeWrapper.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -47,12 +50,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CommonModel\CommonModel.csproj">
-      <Project>{62aa86e8-15f1-4b1d-991e-03103f192527}</Project>
+      <Project>{62AA86E8-15F1-4B1D-991E-03103F192527}</Project>
       <Name>CommonModel</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NamedPipeWrapper\NamedPipeWrapper.csproj">
-      <Project>{73152691-3cde-46df-8d04-7117747dffe7}</Project>
-      <Name>NamedPipeWrapper</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

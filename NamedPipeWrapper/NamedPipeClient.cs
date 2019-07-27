@@ -117,12 +117,6 @@ namespace NamedPipeWrapper
                 return false;
         }
 
-        public void PushMessageForce(TWrite message)
-        {
-            if (_connection != null)
-                _connection.PushMessageForce(message);
-        }
-
         /// <summary>
         /// Connects to the named pipe server asynchronously.
         /// This method returns immediately, possibly before the connection has been established.

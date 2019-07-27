@@ -68,9 +68,7 @@ namespace NamedPipeWrapper
         /// <summary>
         /// To support Multithread, we should use BlockingCollection.
         /// </summary>
-        private readonly BlockingCollection<TWrite> _writeQueue = new BlockingCollection<TWrite>(200);
-
-        private readonly AutoResetEvent _writeSignal = new AutoResetEvent(false);
+        private readonly BlockingCollection<TWrite> _writeQueue = new BlockingCollection<TWrite>();
 
         private bool _notifiedSucceeded;
 
@@ -108,6 +106,9 @@ namespace NamedPipeWrapper
 
         #region Properties
 
+        /// <summary>
+        /// Write Queue Count
+        /// </summary>
         public int Count
         {
             get { return _writeQueue.Count; }
@@ -155,25 +156,18 @@ namespace NamedPipeWrapper
             writeWorker.DoWork(WritePipe);
         }
 
-        public bool PushMessage(TWrite message)
-        {
-            if (_writeQueue.Count == _writeQueue.BoundedCapacity)
-                return false;
-            _writeQueue.Add(message);
-            _writeSignal.Set();
-            return true;
-        }
-
         /// <summary>
         /// Adds the specified <paramref name="message"/> to the write queue.
         /// The message will be written to the named pipe by the background thread
         /// at the next available opportunity.
         /// </summary>
         /// <param name="message"></param>
-        public void PushMessageForce(TWrite message)
+        public bool PushMessage(TWrite message)
         {
+            if (_writeQueue.Count == _writeQueue.BoundedCapacity)
+                return false;
             _writeQueue.Add(message);
-            _writeSignal.Set();
+            return true;
         }
 
         /// <summary>
@@ -182,7 +176,6 @@ namespace NamedPipeWrapper
         private void CloseImpl()
         {
             _streamWrapper.Close();
-            _writeSignal.Set();
         }
 
         /// <summary>
@@ -248,13 +241,8 @@ namespace NamedPipeWrapper
             {
                 try
                 {
-                    //using blockcollection, we needn't use singal to wait for result.
-                    //_writeSignal.WaitOne();
-                    //while (_writeQueue.Count > 0)
-                    {
-                        _streamWrapper.WriteObject(_writeQueue.Take());
-                        _streamWrapper.WaitForPipeDrain();
-                    }
+                    _streamWrapper.WriteObject(_writeQueue.Take());
+                    _streamWrapper.WaitForPipeDrain();
                 }
                 catch
                 {
