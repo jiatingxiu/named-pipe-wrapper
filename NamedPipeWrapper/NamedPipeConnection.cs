@@ -56,7 +56,7 @@ namespace NamedPipeWrapper
         /// <summary>
         /// To support Multithread, we should use BlockingCollection.
         /// </summary>
-        private readonly BlockingCollection<TWrite> _writeQueue = new BlockingCollection<TWrite>();
+        private readonly BlockingCollection<TWrite> _writeQueue = new BlockingCollection<TWrite>(200);
 
         private bool _notifiedSucceeded;
 
@@ -90,10 +90,19 @@ namespace NamedPipeWrapper
         /// at the next available opportunity.
         /// </summary>
         /// <param name="message"></param>
-        public void PushMessage(TWrite message)
+        public void PushMessageForce(TWrite message)
         {
             _writeQueue.Add(message);
             _writeSignal.Set();
+        }
+
+        public bool PushMessage(TWrite message)
+        {
+            if (_writeQueue.Count == _writeQueue.BoundedCapacity)
+                return false;
+            _writeQueue.Add(message);
+            _writeSignal.Set();
+            return true;
         }
 
         /// <summary>
