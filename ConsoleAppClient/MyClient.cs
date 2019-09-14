@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using NamedPipeWrapper;
 using CommonModel;
+using System.Threading;
 
 namespace ConsoleAppClient
 {
@@ -14,7 +15,18 @@ namespace ConsoleAppClient
             get
             {
                 var key = Console.ReadLine();
-                client.PushMessage(new MyMessage() { Text = "Client Say:" + key });
+                if (key == "Q")
+                    return false;
+                
+                for (int i = 0; i < 10000; i++)
+                {
+                    client.PushMessage(new MyMessage() { Text = i.ToString() });
+                }
+                while (client.Count != 0)
+                {
+                    Thread.Sleep(50);
+                    Console.WriteLine("=====================================" + client.Count);
+                }
                 return true;
             }
         }

@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B19069CF-13FC-4797-A72D-F16F7E9ECD74}</ProjectGuid>
+    <ProjectGuid>{DA550C18-7B30-4734-A401-23BFA906F744}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>ConsoleAppClient</RootNamespace>
-    <AssemblyName>ConsoleAppClient</AssemblyName>
+    <RootNamespace>PipTransferBufferTest</RootNamespace>
+    <AssemblyName>PipTransferBufferTest</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -41,15 +41,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MyClient.cs" />
+    <Compile Include="OnlyMemoryImp.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestMain.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CommonModel\CommonModel.csproj">
-      <Project>{62AA86E8-15F1-4B1D-991E-03103F192527}</Project>
-      <Name>CommonModel</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NamedPipeWrapper\NamedPipeWrapper.csproj">
       <Project>{73152691-3cde-46df-8d04-7117747dffe7}</Project>
       <Name>NamedPipeWrapper</Name>

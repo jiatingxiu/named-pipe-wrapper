@@ -19,6 +19,8 @@ namespace NamedPipeWrapper.IO
         #region Fields
 
         private readonly BinaryFormatter _binaryFormatter = new BinaryFormatter();
+        private byte[] _data;
+        private MemoryStream _memoryStream;
 
         #endregion
 
@@ -88,11 +90,23 @@ namespace NamedPipeWrapper.IO
         /// <exception cref="SerializationException">An object in the graph of type parameter <typeparamref name="T"/> is not marked as serializable.</exception>
         private T ReadObject(int len)
         {
-            var data = new byte[len];
-            BaseStream.Read(data, 0, len);
-            using (var memoryStream = new MemoryStream(data))
+            if (_data == null || _data.Length != len)
             {
-                return (T)_binaryFormatter.Deserialize(memoryStream);
+                _data = new byte[len];
+            }
+            BaseStream.Read(_data, 0, len);
+
+            Type t = typeof(T);
+            if (t.Name.Equals("Byte[]"))
+            {
+                return _data as T;
+            }
+            else
+            {
+                using (var memoryStream = new MemoryStream(_data))
+                {
+                    return (T)_binaryFormatter.Deserialize(memoryStream);
+                }
             }
         }
 

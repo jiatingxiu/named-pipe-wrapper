@@ -101,6 +101,14 @@ namespace NamedPipeWrapper
         /// </summary>
         private string _serverName { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Count
+        {
+            get { return _connection.Count; }
+        }
+
         #endregion
 
         #region Methods

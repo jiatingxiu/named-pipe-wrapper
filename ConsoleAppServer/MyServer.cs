@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using CommonModel;
 using NamedPipeWrapper;
 
@@ -11,7 +12,10 @@ namespace ConsoleAppServer
             get
             {
                 var key = Console.ReadLine();
-                server.PushMessage(new MyMessage() { Text = "Server Say:" + key });
+                for (int i = 0; i < 10000; i++)
+                {
+                    server.PushMessage(new MyMessage() { Text = i.ToString() });
+                }
                 return true;
             }
         }
