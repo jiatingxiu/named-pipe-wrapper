@@ -117,12 +117,10 @@ namespace NamedPipeWrapper
         ///     Sends a message to the server over a named pipe.
         /// </summary>
         /// <param name="message">Message to send to the server.</param>
-        public bool PushMessage(TWrite message)
+        public void PushMessage(TWrite message)
         {
             if (_connection != null)
-                return _connection.PushMessage(message);
-            else
-                return false;
+                _connection.PushMessage(message);
         }
 
         /// <summary>

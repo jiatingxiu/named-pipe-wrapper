@@ -46,10 +46,15 @@
     <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="LotusDataTest.cs" />
     <Compile Include="SerializableTests.cs" />
     <Compile Include="DataTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Chison.UltraSound.Common.PluginManagement, Version=1.0.7209.30044, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\Chison.UltraSound.Common.PluginManagement.dll</HintPath>
+    </Reference>
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.2\lib\net40-full\log4net.dll</HintPath>
     </Reference>

@@ -1,7 +1,6 @@
 ﻿using NamedPipeWrapper.IO;
 using NamedPipeWrapper.Threading;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Linq;
@@ -63,14 +62,26 @@ namespace NamedPipeWrapper
         /// </summary>
         public readonly int Id;
 
+        /// <summary>
+        /// Gets the connection's name.
+        /// </summary>
+        public readonly string Name;
+
         private readonly PipeStreamWrapper<TRead, TWrite> _streamWrapper;
 
-        /// <summary>
-        /// To support Multithread, we should use BlockingCollection.
-        /// </summary>
-        private readonly BlockingCollection<TWrite> _writeQueue = new BlockingCollection<TWrite>();
+        private readonly Queue<TWrite> _writeQueue = new Queue<TWrite>();
+
+        private readonly AutoResetEvent _writeSignal = new AutoResetEvent(false);
 
         private bool _notifiedSucceeded;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Count
+        {
+            get { return _writeQueue.Count; }
+        }
 
         #endregion
 
@@ -107,25 +118,12 @@ namespace NamedPipeWrapper
         #region Properties
 
         /// <summary>
-        /// Write Queue Count
-        /// </summary>
-        public int Count
-        {
-            get { return _writeQueue.Count; }
-        }
-
-        /// <summary>
         /// Gets a value indicating whether the pipe is connected or not.
         /// </summary>
         public bool IsConnected
         {
             get { return _streamWrapper.IsConnected; }
         }
-
-        /// <summary>
-        /// Gets the connection's name.
-        /// </summary>
-        public string Name { get; }
 
         #endregion
 
@@ -162,12 +160,10 @@ namespace NamedPipeWrapper
         /// at the next available opportunity.
         /// </summary>
         /// <param name="message"></param>
-        public bool PushMessage(TWrite message)
+        public void PushMessage(TWrite message)
         {
-            if (_writeQueue.Count == _writeQueue.BoundedCapacity)
-                return false;
-            _writeQueue.Add(message);
-            return true;
+            _writeQueue.Enqueue(message);
+            _writeSignal.Set();
         }
 
         /// <summary>
@@ -176,6 +172,7 @@ namespace NamedPipeWrapper
         private void CloseImpl()
         {
             _streamWrapper.Close();
+            _writeSignal.Set();
         }
 
         /// <summary>
@@ -209,24 +206,16 @@ namespace NamedPipeWrapper
         /// <exception cref="SerializationException">An object in the graph of type parameter <typeparamref name="TRead"/> is not marked as serializable.</exception>
         private void ReadPipe()
         {
-
             while (IsConnected && _streamWrapper.CanRead)
             {
-                try
+                var obj = _streamWrapper.ReadObject();
+                if (obj == null)
                 {
-                    var obj = _streamWrapper.ReadObject();
-                    if (obj == null)
-                    {
-                        CloseImpl();
-                        return;
-                    }
-                    if (ReceiveMessage != null)
-                        ReceiveMessage(this, obj);
+                    CloseImpl();
+                    return;
                 }
-                catch
-                {
-                    //we must igonre exception, otherwise, the namepipe wrapper will stop work.
-                }
+                if (ReceiveMessage != null)
+                    ReceiveMessage(this, obj);
             }
         }
 
@@ -236,17 +225,13 @@ namespace NamedPipeWrapper
         /// <exception cref="SerializationException">An object in the graph of type parameter <typeparamref name="TWrite"/> is not marked as serializable.</exception>
         private void WritePipe()
         {
-
             while (IsConnected && _streamWrapper.CanWrite)
             {
-                try
+                _writeSignal.WaitOne();
+                while (_writeQueue.Count > 0)
                 {
-                    _streamWrapper.WriteObject(_writeQueue.Take());
+                    _streamWrapper.WriteObject(_writeQueue.Dequeue());
                     _streamWrapper.WaitForPipeDrain();
-                }
-                catch
-                {
-                    //we must igonre exception, otherwise, the namepipe wrapper will stop work.
                 }
             }
         }
